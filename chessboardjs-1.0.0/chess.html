@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="module">
+        import { Chess } from 'chess.js'
+    </script>
+      
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="js/chessboard-1.0.0.js"></script>
+    <script src="js/chessboard-1.0.0.min.js"></script>
+    <link rel="stylesheet" href="css/chessboard-1.0.0.css" />
+    <link rel="stylesheet" href="css/chessboard-1.0.0.min.css" />
+  </head>
+  <body>
+    <div id="tabuleiro" style="width: 480px"></div>
+    <button id="startBtn">COMECAR</button>
+  </body>
+</html>
+<script>
+  // var board = Chessboard('tabuleiro', {
+  //     draggable: true,
+  //     // dropOffBoard: 'trash',
+  //     // sparePieces: true,
+  // });
+
+  // $('#startBtn').on('click', board.start);
+
+  var board = null;
+  var game = new Chess();
+
+  function makeRandomMove() {
+    var possibleMoves = game.moves();
+
+    // exit if the game is over
+    if (game.game_over()) return;
+
+    var randomIdx = Math.floor(Math.random() * possibleMoves.length);
+    game.move(possibleMoves[randomIdx]);
+    board.position(game.fen());
+
+    window.setTimeout(makeRandomMove, 500);
+  }
+
+  board = Chessboard("tabuleiro", "start");
+
+  window.setTimeout(makeRandomMove, 500);
+</script>
