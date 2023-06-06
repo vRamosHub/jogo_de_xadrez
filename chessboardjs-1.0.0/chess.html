@@ -4,9 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script type="module">
-        import { Chess } from 'chess.js'
-    </script>
+    <script src="node_modules/chess.js/chess.js"></script>
       
     <title>Document</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -16,8 +14,12 @@
     <link rel="stylesheet" href="css/chessboard-1.0.0.min.css" />
   </head>
   <body>
-    <div id="tabuleiro" style="width: 480px"></div>
-    <button id="startBtn">COMECAR</button>
+    <!-- <div id="tabuleiro" style="width: 480px"></div>
+    <button id="startBtn">COMECAR</button> -->
+
+    <div id="myBoard" style="width: 400px"></div>
+    <label>Status:</label>
+    <div id="status"></div>
   </body>
 </html>
 <script>
@@ -29,23 +31,101 @@
 
   // $('#startBtn').on('click', board.start);
 
-  var board = null;
-  var game = new Chess();
+  // var board = null;
+  // var game = new Chess();
 
-  function makeRandomMove() {
-    var possibleMoves = game.moves();
+  // function makeRandomMove() {
+  //   var possibleMoves = game.moves();
 
-    // exit if the game is over
-    if (game.game_over()) return;
+  //   // exit if the game is over
+  //   if (game.game_over()) return;
 
-    var randomIdx = Math.floor(Math.random() * possibleMoves.length);
-    game.move(possibleMoves[randomIdx]);
-    board.position(game.fen());
+  //   var randomIdx = Math.floor(Math.random() * possibleMoves.length);
+  //   game.move(possibleMoves[randomIdx]);
+  //   board.position(game.fen());
 
-    window.setTimeout(makeRandomMove, 500);
+  //   window.setTimeout(makeRandomMove, 500);
+  // }
+
+  // board = Chessboard("tabuleiro", "start");
+
+  // window.setTimeout(makeRandomMove, 500);
+
+
+var board = null
+var game = new Chess()
+var $status = $('#status')
+
+function onDragStart (source, piece, position, orientation) {
+  // do not pick up pieces if the game is over
+  if (game.game_over()) return false
+
+  // only pick up pieces for the side to move
+  if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+      (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+    return false
+  }
+}
+
+function onDrop (source, target) {
+  // see if the move is legal
+  var move = game.move({
+    from: source,
+    to: target,
+    promotion: 'q' // NOTE: always promote to a queen for example simplicity
+  })
+
+  // illegal move
+  if (move === null) return 'snapback'
+
+  updateStatus()
+}
+
+// update the board position after the piece snap
+// for castling, en passant, pawn promotion
+function onSnapEnd () {
+  board.position(game.fen())
+}
+
+function updateStatus () {
+  var status = ''
+
+  var moveColor = 'White'
+  if (game.turn() === 'b') {
+    moveColor = 'Black'
   }
 
-  board = Chessboard("tabuleiro", "start");
+  // checkmate?
+  if (game.in_checkmate()) {
+    status = 'Game over, ' + moveColor + ' is in checkmate.'
+  }
 
-  window.setTimeout(makeRandomMove, 500);
+  // draw?
+  else if (game.in_draw()) {
+    status = 'Game over, drawn position'
+  }
+
+  // game still on
+  else {
+    status = moveColor + ' to move'
+
+    // check?
+    if (game.in_check()) {
+      status += ', ' + moveColor + ' is in check'
+    }
+  }
+
+  $status.html(status)
+}
+
+var config = {
+  draggable: true,
+  position: 'start',
+  onDragStart: onDragStart,
+  onDrop: onDrop,
+  onSnapEnd: onSnapEnd
+}
+board = Chessboard('myBoard', config)
+
+updateStatus()
 </script>
